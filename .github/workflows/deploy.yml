@@ -1,4 +1,4 @@
-me: Deploy Model
+name: Deploy Model
 
 on:
   push:
