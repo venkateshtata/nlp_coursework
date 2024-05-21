@@ -26,10 +26,14 @@ jobs:
       - name: Deploy to Modelbit
         env:
           MB_API_KEY: ${{ secrets.MB_API_KEY }}
-	  MB_WORKSPACE_NAME: ${{ secrets.MB_WORKSPACE_NAME }}
+          MB_WORKSPACE_NAME: ${{ secrets.MB_WORKSPACE_NAME }}
         run: |
           python -c "
+import os
 import modelbit
+
+os.environ['MB_API_KEY'] = os.getenv('MB_API_KEY')
+os.environ['MB_WORKSPACE_NAME'] = os.getenv('MB_WORKSPACE_NAME')
 
 def predict_labels(text):
     label_encoding = {0: 'B-O', 1: 'B-AC', 2: 'B-LF', 3: 'I-LF'}
