@@ -1,0 +1,60 @@
+me: Deploy Model
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install transformers==4.34.1 torch modelbit
+
+      - name: Deploy to Modelbit
+        env:
+          MB_API_KEY: ${{ secrets.MB_API_KEY }}
+	  MB_WORKSPACE_NAME: ${{ secrets.MB_WORKSPACE_NAME }}
+        run: |
+          python -c "
+import modelbit
+
+def predict_labels(text):
+    label_encoding = {0: 'B-O', 1: 'B-AC', 2: 'B-LF', 3: 'I-LF'}
+
+    from transformers import AutoTokenizer, AutoModelForTokenClassification
+    import torch
+
+    tokenizer = AutoTokenizer.from_pretrained('venkateshtata/nlp_cw')
+    model = AutoModelForTokenClassification.from_pretrained('venkateshtata/nlp_cw')
+
+    inputs = tokenizer(text, return_tensors='pt', truncation=True, padding=True)
+
+    model.eval()
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    predictions = outputs.logits.argmax(dim=-1).squeeze().tolist()
+    predicted_labels = [label_encoding[pred] for pred in predictions]
+
+    tokenized_sentence = tokenizer.tokenize(text)
+    token_label_pairs = list(zip(tokenized_sentence, predicted_labels))
+
+    return token_label_pairs
+
+mb = modelbit.login()
+mb.deploy(predict_labels, python_packages=['transformers==4.34.1'])
+"
+
