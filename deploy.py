@@ -32,7 +32,7 @@ def predict_labels(text):
 
     return token_label_pairs
 
-print("Predictions Test: ", predict_labels("For this purpose the Gothenburg Young Persons Empowerment, Scale, (, GYPES, ), was, developed"))
+print("Predictions: ", predict_labels("For this purpose the Gothenburg Young Persons Empowerment, Scale, (, GYPES, ), was, developed"))
 
 print("Deploying")
 mb.deploy(predict_labels, python_packages=['transformers==4.34.1'])
